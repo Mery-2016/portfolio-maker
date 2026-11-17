@@ -1,0 +1,17 @@
+{
+  "name": "resume-builder-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @cvb/api --filter @cvb/web dev",
+    "build": "pnpm --filter @cvb/shared build && pnpm --filter @cvb/templates build && pnpm --filter @cvb/web build && pnpm --filter @cvb/api build",
+    "test": "vitest run",
+    "lint:copy": "tsx scripts/copy-lint.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

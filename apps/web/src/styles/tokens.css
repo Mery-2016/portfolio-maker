@@ -1,0 +1,86 @@
+@import '@fontsource-variable/onest';
+@import '@fontsource/comic-relief/400.css';
+@import '@fontsource/comic-relief/700.css';
+@import '@fontsource/inter';
+@import '@fontsource/roboto';
+@import '@fontsource/pt-serif';
+@import '@fontsource/pt-sans';
+@import '@fontsource/montserrat';
+
+:root {
+  /* Color - Light */
+  --desk: #EFECE5;
+  --paper: #F8F6F1;
+  --surface: #FFFFFF;
+  --ink: #1A1C1E;
+  --ink-2: #55595E;
+  --ink-3: #8A8E93;
+  --rule: #DDD9D0;
+  --rule-strong: #C4BFB4;
+  --lazur: #12608A;
+  --lazur-strong: #0B4A6B;
+  --lazur-wash: #E3EEF3;
+  --brick: #B5462F;
+  --brick-wash: #F6E6E1;
+  --olive: #4F6B2E;
+  --ochre: #8A6212;
+  --on-lazur: #FFFFFF;
+
+  /* Typography */
+  --font-ui: 'Onest Variable', system-ui, -apple-system, sans-serif;
+  --font-voice: 'Comic Relief', 'Onest Variable', cursive, sans-serif;
+
+  /* Geometry */
+  --radius-1: 3px;
+  --radius-2: 6px;
+  --radius-pill: 999px;
+  --shadow-sheet: 0 1px 2px rgb(0 0 0 / .06), 0 8px 24px -8px rgb(0 0 0 / .12);
+  --shadow-sheet-lifted: 0 24px 48px -12px rgb(0 0 0 / .18);
+
+  /* Motion */
+  --dur-instant: 80ms;
+  --dur-quick: 160ms;
+  --dur-base: 240ms;
+  --dur-expressive: 420ms;
+  --dur-sheet: 600ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  color-scheme: light dark;
+  font-family: var(--font-ui);
+  font-synthesis: none;
+}
+
+:root[data-theme='dark'] {
+  --desk: #0F1113;
+  --paper: #16191C;
+  --surface: #1D2024;
+  --ink: #ECE9E3;
+  --ink-2: #A6A9AD;
+  --ink-3: #6E7277;
+  --rule: #2C3035;
+  --rule-strong: #3B4046;
+  --lazur: #5FB4D4;
+  --lazur-strong: #86C8E0;
+  --lazur-wash: #152A35;
+  --brick: #E08A73;
+  --brick-wash: #33201B;
+  --olive: #A4C27A;
+  --ochre: #D9B25E;
+  --on-lazur: #0F1113;
+  --shadow-sheet: 0 12px 32px -8px rgb(0 0 0 / .5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-base: 120ms;
+    --dur-expressive: 120ms;
+    --dur-sheet: 120ms;
+  }
+}
+:root[data-motion='reduced'] {
+  --dur-base: 120ms;
+  --dur-expressive: 120ms;
+  --dur-sheet: 120ms;
+}

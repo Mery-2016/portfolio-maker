@@ -1,0 +1,40 @@
+{
+  "hard": [
+    "JavaScript", "TypeScript", "React", "Next.js", "Vue.js", "Nuxt", "Angular",
+    "Node.js", "Express", "Fastify", "NestJS", "Python", "Django", "FastAPI",
+    "PostgreSQL", "MySQL", "MongoDB", "Redis", "Docker", "Kubernetes", "Linux",
+    "Git", "CI/CD", "REST API", "GraphQL", "Tailwind CSS", "HTML5", "CSS3",
+    "Webpack", "Vite", "Jest", "Vitest", "Playwright", "Cypress", "Java",
+    "Spring Boot", "Kotlin", "Swift", "Flutter", "Go", "Rust", "C#", ".NET",
+    "AWS", "Google Cloud", "Figma", "UI/UX", "SQL", "Pandas", "Scikit-Learn",
+    "PyTorch", "TensorFlow", "Excel", "Tableau", "Power BI", "1C", "ClickHouse",
+    "Kafka", "RabbitMQ", "Microservices", "Nginx", "Terraform", "Ansible"
+  ],
+  "soft": [
+    "Наставничество", "Управление командой", "Критическое мышление", "Деловая переписка",
+    "Проведение собеседований", "Публичные выступления", "Управление временем",
+    "Фасилитация встреч", "Переговоры", "Разрешение конфликтов", "Аналитическое мышление",
+    "Адаптивность", "Стратегическое планирование", "Постановка целей"
+  ],
+  "aliases": {
+    "js": "JavaScript",
+    "ts": "TypeScript",
+    "реакт": "React",
+    "тайпскрипт": "TypeScript",
+    "джаваскрипт": "JavaScript",
+    "нода": "Node.js",
+    "node": "Node.js",
+    "next": "Next.js",
+    "vue": "Vue.js",
+    "postgres": "PostgreSQL",
+    "postgre": "PostgreSQL",
+    "питон": "Python",
+    "докер": "Docker",
+    "гит": "Git",
+    "кубер": "Kubernetes",
+    "к8с": "Kubernetes",
+    "k8s": "Kubernetes",
+    "тестирование": "QA",
+    "тайлвинд": "Tailwind CSS"
+  }
+}
