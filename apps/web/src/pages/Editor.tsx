@@ -147,19 +147,19 @@ export const Editor: React.FC = () => {
       {/* Main 3-Column Desk Workspace */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Column: Table of Contents */}
-        <aside className="hidden lg:block w-56 border-r border-[var(--rule)] p-6 overflow-y-auto shrink-0 bg-[var(--paper)]">
+        <aside className="hidden md:block w-52 shrink-0 border-r border-[var(--rule)] p-5 overflow-y-auto bg-[var(--paper)]">
           <TableOfContents />
         </aside>
 
         {/* Middle Column: Active Form Step / Editorial Mode */}
-        <main className="w-full lg:w-[560px] p-6 lg:p-8 overflow-y-auto border-r border-[var(--rule)] shrink-0 bg-[var(--paper)]">
+        <main className="w-full md:w-[440px] lg:w-[520px] shrink-0 p-6 overflow-y-auto border-r border-[var(--rule)] bg-[var(--paper)]">
           {renderCurrentStep()}
         </main>
 
         {/* Right Column: Editorial Desk with Resume Sheet */}
         <section
           ref={deskRef}
-          className="flex-1 hidden md:flex flex-col items-center justify-between p-8 desk-grain overflow-y-auto relative select-none"
+          className="flex-1 min-w-0 hidden md:flex flex-col items-center justify-between p-6 desk-grain overflow-y-auto relative select-none"
         >
           {/* Sheet Container with FLIP transition */}
           <div className="flex-1 flex items-center justify-center w-full min-h-[600px] py-4">
