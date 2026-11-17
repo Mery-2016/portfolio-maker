@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { ResumeData, createDefaultResumeData, migrateResume } from '@cvb/shared';
+import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 
 export interface DbSession {
   id: string;
@@ -46,13 +47,17 @@ export interface DbAiGeneration {
   createdAt: string;
 }
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const UPLOADS_DIR = path.resolve(process.cwd(), 'data', 'uploads');
-const EXPORTS_DIR = path.resolve(process.cwd(), 'data', 'exports');
+const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/data' : path.resolve(process.cwd(), 'data'));
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+const EXPORTS_DIR = path.join(DATA_DIR, 'exports');
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-if (!fs.existsSync(EXPORTS_DIR)) fs.mkdirSync(EXPORTS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  if (!fs.existsSync(EXPORTS_DIR)) fs.mkdirSync(EXPORTS_DIR, { recursive: true });
+} catch {
+  // Ignored in read-only filesystems
+}
 
 class DatabaseStore {
   private sessions: Map<string, DbSession> = new Map(); // tokenHash -> DbSession
@@ -60,9 +65,80 @@ class DatabaseStore {
   private exports: Map<string, DbExport> = new Map(); // id -> DbExport
   private aiGenerations: DbAiGeneration[] = [];
   private dbFilePath = path.join(DATA_DIR, 'store.json');
+  private neonSql: NeonQueryFunction<false, false> | null = null;
 
   constructor() {
+    const dbUrl = process.env.DATABASE_URL;
+    if (dbUrl) {
+      try {
+        this.neonSql = neon(dbUrl);
+        this.loadFromNeon().catch(err => console.error('Neon initial load error:', err));
+      } catch (err) {
+        console.error('Failed to init Neon connection:', err);
+      }
+    }
     this.loadFromFile();
+  }
+
+  private async loadFromNeon() {
+    if (!this.neonSql) return;
+    try {
+      const sessionRows = await this.neonSql`SELECT * FROM sessions`;
+      for (const s of sessionRows as any[]) {
+        this.sessions.set(s.token_hash, {
+          id: s.id,
+          userId: s.user_id,
+          tokenHash: s.token_hash,
+          createdAt: s.created_at,
+          expiresAt: s.expires_at,
+        });
+      }
+
+      const resumeRows = await this.neonSql`SELECT * FROM resumes ORDER BY updated_at DESC`;
+      for (const r of resumeRows as any[]) {
+        this.resumes.set(r.id, {
+          id: r.id,
+          ownerUserId: r.owner_user_id,
+          ownerSession: r.owner_session,
+          title: r.title,
+          data: typeof r.data === 'string' ? JSON.parse(r.data) : r.data,
+          version: r.version,
+          publicSlug: r.public_slug,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        });
+      }
+      console.log(`Synchronized from Neon: ${sessionRows.length} sessions, ${resumeRows.length} resumes.`);
+    } catch (err) {
+      console.error('Failed to load data from Neon:', err);
+    }
+  }
+
+  private syncSessionToNeon(session: DbSession) {
+    if (!this.neonSql) return;
+    this.neonSql`
+      INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at)
+      VALUES (${session.id}, ${session.userId}, ${session.tokenHash}, ${session.createdAt}, ${session.expiresAt})
+      ON CONFLICT (token_hash) DO NOTHING
+    `.catch(err => console.error('Neon syncSession error:', err));
+  }
+
+  private syncResumeToNeon(resume: DbResume) {
+    if (!this.neonSql) return;
+    this.neonSql`
+      INSERT INTO resumes (id, owner_user_id, owner_session, title, data, version, public_slug, created_at, updated_at)
+      VALUES (${resume.id}, ${resume.ownerUserId}, ${resume.ownerSession}, ${resume.title}, ${JSON.stringify(resume.data)}, ${resume.version}, ${resume.publicSlug || null}, ${resume.createdAt}, ${resume.updatedAt})
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        data = EXCLUDED.data,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at
+    `.catch(err => console.error('Neon syncResume error:', err));
+  }
+
+  private deleteResumeFromNeon(id: string) {
+    if (!this.neonSql) return;
+    this.neonSql`DELETE FROM resumes WHERE id = ${id}`.catch(err => console.error('Neon deleteResume error:', err));
   }
 
   private loadFromFile() {
@@ -118,6 +194,7 @@ class DatabaseStore {
 
     this.sessions.set(tokenHash, session);
     this.persist();
+    this.syncSessionToNeon(session);
     return { session, token: newToken, isNew: true };
   }
 
@@ -165,6 +242,7 @@ class DatabaseStore {
 
     this.resumes.set(resumeId, resume);
     this.persist();
+    this.syncResumeToNeon(resume);
     return resume;
   }
 
@@ -224,6 +302,7 @@ class DatabaseStore {
     }
 
     this.persist();
+    this.syncResumeToNeon(resume);
     return { status: 'ok', version: resume.version };
   }
 
@@ -249,6 +328,7 @@ class DatabaseStore {
 
     this.resumes.set(newId, clone);
     this.persist();
+    this.syncResumeToNeon(clone);
     return clone;
   }
 
@@ -257,6 +337,7 @@ class DatabaseStore {
     if (!resume) return false;
     this.resumes.delete(id);
     this.persist();
+    this.deleteResumeFromNeon(id);
     return true;
   }
 

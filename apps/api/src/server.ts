@@ -1,3 +1,5 @@
+import 'dotenv/config';
+import fs from 'fs';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
@@ -46,15 +48,25 @@ await server.register(multipart, {
 });
 
 // Static directories for uploads and exports
-const DATA_DIR = path.resolve(process.cwd(), 'data');
+const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/data' : path.resolve(process.cwd(), 'data'));
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+const EXPORTS_DIR = path.join(DATA_DIR, 'exports');
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  if (!fs.existsSync(EXPORTS_DIR)) fs.mkdirSync(EXPORTS_DIR, { recursive: true });
+} catch {
+  // Ignored in read-only filesystems
+}
+
 await server.register(fastifyStatic, {
-  root: path.join(DATA_DIR, 'uploads'),
+  root: UPLOADS_DIR,
   prefix: '/uploads/',
   decorateReply: false,
 });
 
 await server.register(fastifyStatic, {
-  root: path.join(DATA_DIR, 'exports'),
+  root: EXPORTS_DIR,
   prefix: '/exports/',
   decorateReply: false,
 });
@@ -88,13 +100,18 @@ server.setErrorHandler((error: any, request, reply) => {
   });
 });
 
-const PORT = Number(process.env.PORT || 3001);
-const HOST = process.env.HOST || '0.0.0.0';
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  const PORT = Number(process.env.PORT || 3001);
+  const HOST = process.env.HOST || '0.0.0.0';
 
-try {
-  await server.listen({ port: PORT, host: HOST });
-  console.log(`CV Builder AI API Server running at http://localhost:${PORT}`);
-} catch (err) {
-  server.log.error(err);
-  process.exit(1);
+  try {
+    await server.listen({ port: PORT, host: HOST });
+    console.log(`CV Builder AI API Server running at http://localhost:${PORT}`);
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
 }
+
+export { server };
+export default server;
