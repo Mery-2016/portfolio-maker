@@ -1,4 +1,10 @@
-import 'dotenv/config';
+if (!process.env.VERCEL) {
+  try {
+    await import('dotenv/config');
+  } catch {
+    // Dotenv optional in production
+  }
+}
 import fs from 'fs';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
@@ -85,6 +91,9 @@ server.register(async (api) => {
 
 // Healthcheck
 server.get('/health', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+server.get('/api/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
